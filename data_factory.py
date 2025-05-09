@@ -33,7 +33,19 @@ class data_factory:
         dict_user_info = self.client.read("farms/"+field_id+"/subscription/"+user_id)
         
         return dict_user_info
+    
+    def get_ai_review(self, field_id):
+        self.client.create_or_update(f"get/field_id", field_id)
+        
+        ans = None
+        while(True):
+            ans = self.client.read("send")
+            if ans != None:
+                break
+        
+        return ans
+
         
 if __name__ == "__main__":
     df = data_factory()
-    df.get_user_info("user_test_001")
+    print(df.client.read("aa"))
