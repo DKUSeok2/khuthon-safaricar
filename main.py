@@ -40,7 +40,7 @@ def Crops(crop_id, name, crop_price, description, image_url):
 
 # 농장 추가
 def Farm(field_id, farmer_id, crops, avg_rating, coast,
-             avg_yield, max_yield, min_yield,
+             avg_yield, max_yield, min_yield,remain_percentage,
              log=None, subscription=None):
     farm_data = {
         "farmer_id": farmer_id,
@@ -52,6 +52,7 @@ def Farm(field_id, farmer_id, crops, avg_rating, coast,
             "max_harvest_yield": max_yield,
             "min_harvest_yield": min_yield
         },
+        "remain_percentage": remain_percentage,
         "log": log or {},
         "subscription": subscription or {}
     }
@@ -67,15 +68,21 @@ def Review_Field(field_id, user_id, content, date, rating):
         "date": date,
         "rating": rating
     }
-    # 기존 리뷰 배열 불러오기 → 없으면 빈 배열
     path = f"review_fields/{field_id}/reviews"
-    existing_reviews = client.read(path) or {}
+    existing_reviews = client.read(path)
 
-    next_index = str(len(existing_reviews))
+    if not isinstance(existing_reviews, dict):
+        existing_reviews = {}
+
+    if existing_reviews:
+        max_index = max(int(k) for k in existing_reviews.keys())
+        next_index = str(max_index + 1)
+    else:
+        next_index = "0"
 
     existing_reviews[next_index] = review
-
     client.create_or_update(path, existing_reviews)
+
 
 
 if __name__ == "__main__":
@@ -84,112 +91,68 @@ if __name__ == "__main__":
         "https://khuton-default-rtdb.firebaseio.com/"
     )
 
-    # 1. 사용자 등록
-    User(
-        user_id="user_test_001",
-        name="김테스트",
-        phoneNum="010-1234-5678",
-        address="서울시 중구 리뷰로 1길",
-        password="testpw123",
-        subscription_fields={
-            "field_test_001": {
-                "start_date": "2025-05-01"
-            }
-        }
-    )
-
-    # 2. 작물 등록 (crop_id는 crop 이름으로 단순 설정)
-    Crops(
-        crop_id="crop_lettuce",
-        name="상추",
-        crop_price=2200,
-        description="신선한 상추입니다.",
-        image_url="https://example.com/lettuce.jpg"
-    )
-
-    # 3. 밭 등록
-    Farm(
-        field_id="field_test_001",
-        farmer_id="farmer_placeholder",  # 분석 목적상 농부 정보는 무시
-        crops="상추",
-        avg_rating=5,
-        coast=2300.0,
-        avg_yield=180.0,
-        max_yield=210.0,
-        min_yield=160.0,
-        log={
-            "2025-05-01": {
-                "harvest_yield": 190.5,
-                "remain_percentage": 85.0
-            }
-        },
-        subscription={
-            "userID": "user_test_001",
-            "amount": 25.0,
+# 사용자 등록
+User(
+    user_id="user_test_010",
+    name="이은정",
+    phoneNum="010-1234-8888",
+    address="경기도 고양시 덕양구 상추길 99",
+    password="testpw456",
+    subscription_fields={
+        "field_lettuce_001": {
             "start_date": "2025-05-01"
         }
-    )
+    }
+)
 
-    # 4. 리뷰 등록
-    Review_Field(
-        field_id="field_test_001",
-        user_id="user_test_001",
-        content="상추가 정말 신선하고 맛있었습니다. 재구매 의사 있어요!",
-        date="2025-05-09",
-        rating=5
-    )
+# 농부 등록
+Farmer(
+    farmer_id="farmer_test_010",
+    name="최농부",
+    phoneNum="010-9999-1234",
+    address="강원도 평창군 상추마을 8-1",
+    password="farmsecure",
+    field_id="field_lettuce_001"
+)
 
-        # 1. 사용자 등록
-    User(
-        user_id="user_test_002",
-        name="이리뷰",
-        phoneNum="010-2345-6789",
-        address="부산광역시 리뷰구 평가동 22-1",
-        password="reviewpass456",
-        subscription_fields={
-            "field_test_002": {
-                "start_date": "2025-04-15"
-            }
+# 작물 등록
+Crops(
+    crop_id="crop_lettuce",
+    name="상추",
+    crop_price=1400,
+    description="유기농 인증 상추입니다. 쌈에 최적화된 품질입니다.",
+    image_url="https://example.com/lettuce.jpg"
+)
+
+# 밭 등록
+Farm(
+    field_id="field_lettuce_001",
+    farmer_id="farmer_test_010",
+    crops="상추",
+    avg_rating=4.6,
+    coast=1400.0,
+    avg_yield=95.0,
+    max_yield=110.0,
+    min_yield=80.0,
+    remain_percentage=73.0,
+    log={
+        "2025-05-01": {
+            "harvest_yield": 97.5,
+            "remain_percentage": 73.0
         }
-    )
-
-    # 2. 작물 등록
-    Crops(
-        crop_id="crop_sweetpotato",
-        name="고구마",
-        crop_price=2400,
-        description="달콤한 밤고구마입니다.",
-        image_url="https://example.com/sweetpotato.jpg"
-    )
-
-    # 3. 밭 등록
-    Farm(
-        field_id="field_test_002",
-        farmer_id="farmer_placeholder",  # 농부 정보 생략
-        crops="고구마",
-        avg_rating=4,
-        coast=2600.0,
-        avg_yield=160.0,
-        max_yield=220.0,
-        min_yield=140.0,
-        log={
-            "2025-04-15": {
-                "harvest_yield": 175.3,
-                "remain_percentage": 88.0
-            }
-        },
-        subscription={
-            "userID": "user_test_002",
-            "amount": 30.0,
-            "start_date": "2025-04-15"
+    },
+    subscription={
+        "user_test_010": {
+            "amount": 20.0,
+            "start_date": "2025-05-01"
         }
-    )
-
-    # 4. 리뷰 등록
-    Review_Field(
-        field_id="field_test_002",
-        user_id="user_test_002",
-        content="고구마가 달고 부드러워서 정말 맛있었어요. 아이들도 좋아해요!",
-        date="2025-04-20",
-        rating=4
-    )
+    }
+)
+# 리뷰 등록
+Review_Field(
+    field_id="field_lettuce_001",
+    user_id="user_test_010",
+    content="상추가 신선하고 맛이 좋아요. 포장도 깔끔했습니다.",
+    date="2025-05-10",
+    rating=5
+)
