@@ -16,7 +16,6 @@ class FarmApp(tk.Tk):
         self.configure(bg="white")
 
         self.user_info = {"name": "", "phone": "", "address": ""}
-        self.farm_data = self.get_subscribed_farms()
     
         self.active_frame = None
         self.create_bottom_menu()
@@ -77,7 +76,7 @@ class FarmApp(tk.Tk):
         
         for farm_id in subscribed_farms:
             farm_data = self.df.get_subscription_farm(farm_id)
-            self.create_farm_card(list_frame, farm_data)
+            self.create_farm_card(list_frame, farm_data, farm_id)
 
         canvas.create_window((0, 0), window=list_frame, anchor="nw")
         canvas.update_idletasks()
@@ -100,7 +99,8 @@ class FarmApp(tk.Tk):
         tk.Label(info_window, text=user_info["address"], bg="white", font=("Helvetica", 12), wraplength=250, justify="center").pack()
 
     # - 카드 생성
-    def create_farm_card(self, parent, farm):
+    def create_farm_card(self, parent, farm, farm_id):
+        user = self.df.get_subscription_user_info(farm_id, self.current_user_id)
         card = tk.Frame(parent, bd=1, relief="ridge", bg="white")
         card.pack(padx=10, pady=10, fill="x")
 
@@ -120,7 +120,7 @@ class FarmApp(tk.Tk):
 
         overlay = tk.Label(
             card,
-            text=f"{farm['name']} | {farm['amount']}개 | {farm['price']}원",
+            text=f"{farm['crops']} | {user['amount']}개 | {farm['coast']}원",
             bg="black", fg="white",
             font=("Helvetica", 12),
             anchor="w"
@@ -187,174 +187,6 @@ class FarmApp(tk.Tk):
                 messagebox.showwarning("입력 오류", "리뷰 내용을 입력해주세요.")
 
         tk.Button(detail_window, text="리뷰 제출", command=submit_review, bg="green", fg="white").pack(pady=10)
-    # - 데이터셋
-    def get_subscribed_farms(self):
-        return [
-            {
-                "name": "당근농장",
-                "amount": 100,  #
-                "price": 1400,  
-                "image_path": "farm1.jpg",
-                "description": "유기농 당근을 재배하는 농장입니다. 매일 아침 수확하여 신선함을 자랑합니다.",
-                "subscribed": True, #
-                "reviews": [    #
-                    {"user": "김철수", "rating": 5, "text": "정말 신선하고 맛있어요!"},
-                    {"user": "박영희", "rating": 4, "text": "배송도 빠르고 만족합니다."}
-                ]
-            },
-            {
-                "name": "배추농장",
-                "amount": 150,
-                "price": 2000,
-                "image_path": "farm2.jpg",
-                "description": "김장철 맞춤 배추를 생산하는 농장입니다. 무농약 인증을 받았습니다.",
-                "subscribed": True,
-                "reviews": [
-                    {"user": "이민수", "rating": 5, "text": "배추가 정말 신선하고 알이 꽉 찼어요."}
-                ]
-            }
-        ]
-    def get_users_information(self):
-        return {
-            "userA": {
-                "name": "김하늘",
-                "phoneNum": "010-1234-5678",
-                "address": "서울특별시 마포구",
-                "password": "hashed_pw_1",
-                "Subscription_Field_id": {
-                    "당근농장": "2024-03-15",
-                    "배추농장": "2024-04-10"
-                }
-            },
-            "userB": {
-                "name": "이준호",
-                "phoneNum": "010-9876-5432",
-                "address": "부산광역시 해운대구",
-                "password": "hashed_pw_2",
-                "Subscription_Field_id": {
-                    "토마토농장": "2024-05-01"
-                }
-            },
-            "userC": {
-                "name": "최유진",
-                "phoneNum": "010-5678-1234",
-                "address": "대전광역시 서구",
-                "password": "hashed_pw_3",
-                "Subscription_Field_id": {
-                    "당근농장": "2024-02-28",
-                    "고구마농장": "2024-03-20",
-                    "배추농장": "2024-04-05"
-                }
-            }
-        }
-    def get_fields_information(self):
-        return {
-            "당근농장": {
-                "FarmerID": "farmer01",
-                "Crops": "당근",
-                "Avg_rating": 4.6,
-                "Coast": 1400.0,
-                "harvest_yield": {
-                    "Avg_harvest_yield": 95.3,
-                    "Max_harvest_yield": 120.0,
-                    "Min_harvest_yield": 80.0,
-                },
-                "Log": {
-                    "2024-03-01": 100.5,
-                    "2024-03-15": 92.0
-                },
-                "Remain_Percentage": 82.5,
-                "Subscription": [
-                    {"Amount": 30.0, "userID": "userA", "start_date": "2024-03-15"},
-                    {"Amount": 25.0, "userID": "userC", "start_date": "2024-02-28"}
-                ]
-            },
-            "배추농장": {
-                "FarmerID": "farmer02",
-                "Crops": "배추",
-                "Avg_rating": 4.9,
-                "Coast": 2000.0,
-                "harvest_yield": {
-                    "Avg_harvest_yield": 102.7,
-                    "Max_harvest_yield": 130.0,
-                    "Min_harvest_yield": 85.0,
-                },
-                "Log": {
-                    "2024-03-10": 105.0,
-                    "2024-04-05": 95.0
-                },
-                "Remain_Percentage": 76.0,
-                "Subscription": [
-                    {"Amount": 35.0, "userID": "userA", "start_date": "2024-04-10"},
-                    {"Amount": 20.0, "userID": "userC", "start_date": "2024-04-05"}
-                ]
-            },
-            "토마토농장": {
-                "FarmerID": "farmer03",
-                "Crops": "토마토",
-                "Avg_rating": 4.2,
-                "Coast": 1100.0,
-                "harvest_yield": {
-                    "Avg_harvest_yield": 87.0,
-                    "Max_harvest_yield": 100.0,
-                    "Min_harvest_yield": 70.0,
-                },
-                "Log": {
-                    "2024-04-01": 88.5
-                },
-                "Remain_Percentage": 68.0,
-                "Subscription": [
-                    {"Amount": 50.0, "userID": "userB", "start_date": "2024-05-01"}
-                ]
-            },
-            "고구마농장": {
-                "FarmerID": "farmer04",
-                "Crops": "고구마",
-                "Avg_rating": 4.5,
-                "Coast": 1700.0,
-                "harvest_yield": {
-                    "Avg_harvest_yield": 93.5,
-                    "Max_harvest_yield": 110.0,
-                    "Min_harvest_yield": 78.0,
-                },
-                "Log": {
-                    "2024-03-01": 97.0,
-                    "2024-03-20": 89.0
-                },
-                "Remain_Percentage": 59.0,
-                "Subscription": [
-                    {"Amount": 40.0, "userID": "userC", "start_date": "2024-03-20"}
-                ]
-            }
-        }
-    def get_crops_information(self):
-        return {
-            "당근": {
-                "Crop_price": 1400,
-                "Description": "달콤하고 아삭한 유기농 당근입니다. 샐러드와 주스로 활용하기 좋아요.",
-                "Image_url": "carrot.jpg",
-                "Name": "당근"
-            },
-            "배추": {
-                "Crop_price": 2000,
-                "Description": "김장철 필수! 속이 꽉 찬 무농약 배추입니다.",
-                "Image_url": "cabbage.jpg",
-                "Name": "배추"
-            },
-            "토마토": {
-                "Crop_price": 1100,
-                "Description": "신선한 토마토로 샐러드와 파스타를 더욱 풍성하게!",
-                "Image_url": "tomato.jpg",
-                "Name": "토마토"
-            },
-            "고구마": {
-                "Crop_price": 1700,
-                "Description": "쪄먹어도 구워먹어도 맛있는 달콤한 고구마!",
-                "Image_url": "sweet_potato.jpg",
-                "Name": "고구마"
-            }
-        }
-
 
     # (3) 회원가입 페이지
     def create_profile_form(self):
